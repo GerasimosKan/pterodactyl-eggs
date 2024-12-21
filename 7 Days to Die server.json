@@ -1,0 +1,91 @@
+{
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": 1708207130,
+    "name": "7 Days to Die",
+    "author": "gerasimos@kanelatos.gr",
+    "description": "7 Days to Die is an open-world game that combines first-person shooting, survival horror, tower defense, and role-playing games.",
+    "features": ["steam_disk_space"],
+    "docker_images": {
+        "default": "ghcr.io/pterodactylgames/steamcmd:source"
+    },
+    "file_denylist": [],
+    "startup": "./7DaysToDieServer.x86_64 -configfile=serverconfig.xml -logfile output_log.txt -quit -batchmode -nographics -dedicated -ServerPort=${SERVER_PORT} -ServerMaxPlayerCount=${MAX_PLAYERS} -GameDifficulty=${GAME_DIFFICULTY} -ControlPanelEnabled=false -TelnetEnabled=true -TelnetPort=${TELNET_PORT} -TelnetPassword=${PASSWORD}",
+    "config": {
+        "files": {
+            "serverconfig.xml": {
+                "parser": "xml",
+                "find": {
+                    "serverconfig.server_port": "{{server.build.default.port}}",
+                    "serverconfig.server_name": "{{server.name}}",
+                    "serverconfig.maxplayers": "{{server.build.env.MAX_PLAYERS}}"
+                }
+            }
+        },
+        "startup": {
+            "done": "Connected with 7DTD server",
+            "userInteraction": []
+        },
+        "logs": {
+            "custom": false,
+            "location": "output_log.txt"
+        },
+        "stop": "shutdown"
+    },
+    "scripts": {
+        "install": {
+            "script": "#!/bin/bash\napt-get update\napt-get install -y curl lib32gcc-s1 ca-certificates\ncd /mnt/server\ncurl -sSL -o steamcmd.tar.gz https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz\ntar -xzvf steamcmd.tar.gz\nmkdir -p /mnt/server/steamapps\ncd /mnt/server\n./steamcmd.sh +login anonymous +force_install_dir /mnt/server +app_update 294420 validate +quit\nmkdir -p /mnt/server/.steam/sdk32 /mnt/server/.steam/sdk64\ncp -v linux32/steamclient.so .steam/sdk32/steamclient.so\ncp -v linux64/steamclient.so .steam/sdk64/steamclient.so",
+            "container": "ubuntu:20.04",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Server Port",
+            "description": "The port for the 7 Days to Die server.",
+            "env_variable": "SERVER_PORT",
+            "default_value": "26900",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1,65535"
+        },
+        {
+            "name": "Max Players",
+            "description": "Maximum number of players allowed on the server.",
+            "env_variable": "MAX_PLAYERS",
+            "default_value": "8",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|min:1"
+        },
+        {
+            "name": "Game Difficulty",
+            "description": "Set the difficulty level. 0=easiest, 5=hardest.",
+            "env_variable": "GAME_DIFFICULTY",
+            "default_value": "2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:0,5"
+        },
+        {
+            "name": "Telnet Password",
+            "description": "Specify a password for Telnet if exposed.",
+            "env_variable": "PASSWORD",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:30"
+        },
+        {
+            "name": "Telnet Port",
+            "description": "The port for Telnet access.",
+            "env_variable": "TELNET_PORT",
+            "default_value": "8081",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|integer|between:1,65535"
+        }
+    ]
+}

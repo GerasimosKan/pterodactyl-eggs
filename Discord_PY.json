@@ -1,0 +1,82 @@
+{
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2024-12-19T15:10:00+00:00",
+  "name": "Discord.py Bot (Python 3.8)",
+  "author": "gerasimos@kanelatos.gr",
+  "description": "A Pterodactyl egg for running Discord.py bots using Python 3.8. Automatically installs requirements.txt on every startup.",
+  "features": null,
+  "docker_images": {
+    "Python 3.8": "python:3.8-dev"
+  },
+  "file_denylist": [],
+  "startup": "pip install --upgrade pip && if [[ -f /home/container/{{REQUIREMENTS_FILE}} ]]; then pip install -r /home/container/{{REQUIREMENTS_FILE}}; fi && pip install discord.py && python3 /home/container/{{PY_FILE}}",
+  "config": {
+    "files": "{}",
+    "startup": "{\r\n    \"done\": \"Bot is ready!\"\r\n}",
+    "logs": "{}",
+    "stop": "^C"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\r\n# Install script for Discord.py bot\r\napt update\r\napt install -y python3 python3-pip python3-dev git\r\n\r\n# Install necessary dependencies for PyNaCl (for voice support)\r\napt install -y libffi-dev\r\n\r\ncd /mnt/server\r\nif [ \"${USER_UPLOAD}\" == \"true\" ]; then\r\n    echo \"User opted to upload files. Skipping clone.\"\r\nelse\r\n    if [[ ${GIT_ADDRESS} != *.git ]]; then\r\n        GIT_ADDRESS=${GIT_ADDRESS}.git\r\n    fi\r\n    git clone ${GIT_ADDRESS} .\r\nfi\r\n\r\npip install --upgrade pip\r\nif [[ -f /mnt/server/${REQUIREMENTS_FILE} ]]; then\r\n    pip install -r ${REQUIREMENTS_FILE}\r\nelse\r\n    echo \"No requirements.txt file found.\"\r\nfi\r\n\r\npip install discord.py\r\n\r\necho \"Installation completed!\"",
+      "container": "python:3.8-dev",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Python File",
+      "description": "The Python file to run your bot (e.g., bot.py).",
+      "env_variable": "PY_FILE",
+      "default_value": "bot.py",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Git Repository",
+      "description": "The Git repository to clone for your bot files.",
+      "env_variable": "GIT_ADDRESS",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Git Branch",
+      "description": "The branch to clone from the Git repository.",
+      "env_variable": "BRANCH",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string",
+      "field_type": "text"
+    },
+    {
+      "name": "Requirements File",
+      "description": "The requirements file to install dependencies (default: requirements.txt).",
+      "env_variable": "REQUIREMENTS_FILE",
+      "default_value": "requirements.txt",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string",
+      "field_type": "text"
+    },
+    {
+      "name": "User Uploaded Files",
+      "description": "Skip cloning and use uploaded files.\r\n0 = false (default)\r\n1 = true",
+      "env_variable": "USER_UPLOAD",
+      "default_value": "0",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|boolean",
+      "field_type": "text"
+    }
+  ]
+}
